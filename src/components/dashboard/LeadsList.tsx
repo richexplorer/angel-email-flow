@@ -39,19 +39,26 @@ export const LeadsList = ({ onSelectLead, selectedLead }: LeadsListProps) => {
   }, []);
 
   useEffect(() => {
+    console.log('Filtering leads with search term:', searchTerm);
+    console.log('Total leads to filter:', leads.length);
+    
     const filtered = leads.filter(lead => 
       `${lead['First Name']} ${lead['Last Name']}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead['Company Name']?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead['Title']?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       lead['Email']?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+    
+    console.log('Filtered leads count:', filtered.length);
     setFilteredLeads(filtered);
   }, [leads, searchTerm]);
 
   const fetchLeads = async () => {
     try {
-      console.log('Fetching leads from Vaasu Angels table...');
+      console.log('Step 1: Starting to fetch leads from Vaasu Angels table...');
+      setLoading(true);
       
+      console.log('Step 2: Making Supabase query...');
       const { data, error } = await supabase
         .from('Vaasu Angels (4.5K)')
         .select(`
@@ -68,13 +75,14 @@ export const LeadsList = ({ onSelectLead, selectedLead }: LeadsListProps) => {
           "State", 
           "Country",
           "Secondary Email"
-        `)
-        .order('"First Name"', { ascending: true });
+        `);
 
-      console.log('Supabase response:', { data, error });
+      console.log('Step 3: Supabase query completed');
+      console.log('Step 4: Response data:', data);
+      console.log('Step 5: Response error:', error);
 
       if (error) {
-        console.error('Error fetching leads:', error);
+        console.error('Step 6: Error detected:', error);
         toast({
           title: "Database Error",
           description: `Failed to fetch leads: ${error.message}`,
@@ -83,16 +91,22 @@ export const LeadsList = ({ onSelectLead, selectedLead }: LeadsListProps) => {
         return;
       }
 
-      console.log(`Successfully fetched ${data?.length || 0} leads`);
+      console.log('Step 7: No error detected');
+      console.log(`Step 8: Successfully fetched ${data?.length || 0} leads`);
+      console.log('Step 9: Sample lead data:', data?.[0]);
+      
       setLeads(data || []);
+      console.log('Step 10: State updated with leads');
+      
     } catch (error) {
-      console.error('Unexpected error:', error);
+      console.error('Step 11: Unexpected error caught:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred while fetching leads",
         variant: "destructive",
       });
     } finally {
+      console.log('Step 12: Setting loading to false');
       setLoading(false);
     }
   };
@@ -103,6 +117,10 @@ export const LeadsList = ({ onSelectLead, selectedLead }: LeadsListProps) => {
            selectedLead['Last Name'] === lead['Last Name'] &&
            selectedLead['Email'] === lead['Email'];
   };
+
+  console.log('Render: Loading state:', loading);
+  console.log('Render: Leads count:', leads.length);
+  console.log('Render: Filtered leads count:', filteredLeads.length);
 
   if (loading) {
     return (
