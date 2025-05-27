@@ -54,62 +54,38 @@ export const LeadsList = ({ onSelectLead, selectedLead }: LeadsListProps) => {
   }, [leads, searchTerm]);
 
   const fetchLeads = async () => {
-    try {
-      console.log('Step 1: Starting to fetch leads from Vaasu Angels table...');
-      setLoading(true);
-      
-      console.log('Step 2: Making Supabase query...');
-      const { data, error } = await supabase
-        .from('Vaasu Angels (4.5K)')
-        .select(`
-          "First Name",
-          "Last Name", 
-          "Title",
-          "Company Name",
-          "Linkedin Url",
-          "Email",
-          "Seniority",
-          "Departments",
-          "Phone",
-          "City",
-          "State", 
-          "Country",
-          "Secondary Email"
-        `);
+  setLoading(true);
+  console.log('Fetching from table: vaasu_angels');
 
-      console.log('Step 3: Supabase query completed');
-      console.log('Step 4: Response data:', data);
-      console.log('Step 5: Response error:', error);
+  const { data, error } = await supabase
+    .from('vaasu_angels')
+    .select('*')  // Temporarily select everything to test
 
-      if (error) {
-        console.error('Step 6: Error detected:', error);
-        toast({
-          title: "Database Error",
-          description: `Failed to fetch leads: ${error.message}`,
-          variant: "destructive",
-        });
-        return;
-      }
+  console.log('Supabase response:', { data, error });
 
-      console.log('Step 7: No error detected');
-      console.log(`Step 8: Successfully fetched ${data?.length || 0} leads`);
-      console.log('Step 9: Sample lead data:', data?.[0]);
-      
-      setLeads(data || []);
-      console.log('Step 10: State updated with leads');
-      
-    } catch (error) {
-      console.error('Step 11: Unexpected error caught:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred while fetching leads",
-        variant: "destructive",
-      });
-    } finally {
-      console.log('Step 12: Setting loading to false');
-      setLoading(false);
-    }
-  };
+  if (error) {
+    toast({
+      title: "Database Error",
+      description: `Failed to fetch leads: ${error.message}`,
+      variant: "destructive",
+    });
+    setLoading(false);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    toast({
+      title: "No Data Found",
+      description: "Table exists but returned no data. Check RLS policies.",
+      variant: "destructive",
+    });
+  } else {
+    setLeads(data);
+    console.log('Data fetched:', data);
+  }
+
+  setLoading(false);
+};
 
   const isSelected = (lead: Lead) => {
     return selectedLead && 
@@ -137,7 +113,7 @@ export const LeadsList = ({ onSelectLead, selectedLead }: LeadsListProps) => {
     <div className="h-full flex flex-col border-r border-gray-200 bg-gray-50">
       <div className="p-4 border-b border-gray-200 bg-white">
         <h2 className="text-lg font-semibold mb-3">
-          Vaasu Angels Leads ({filteredLeads.length} of {leads.length})
+          Angel Leads ({filteredLeads.length} of {leads.length})
         </h2>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />

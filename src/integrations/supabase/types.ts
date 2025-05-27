@@ -9,7 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      "Vaasu Angels (4.5K)": {
+      "vaasu_angels": {
         Row: {
           City: string | null
           "Company Name": string | null

@@ -121,7 +121,7 @@ export const LinkedInProfile = ({ selectedLead }: LinkedInProfileProps) => {
             {selectedLead['Linkedin Url'] && (
               <div className="pt-4">
                 <iframe
-                  src={`https://www.linkedin.com/embed/feed/update/urn:li:share:${selectedLead['Linkedin Url'].split('/').pop()}`}
+                  src={selectedLead['Linkedin Url']}
                   height="400"
                   width="100%"
                   frameBorder="0"
