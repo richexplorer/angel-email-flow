@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Settings, Plus, Trash2 } from 'lucide-react';
+import { Settings, Plus, Trash2, Eye, EyeOff } from 'lucide-react';
 import { getSettings, saveSettings, type UserSettings } from '@/lib/settings';
 
 interface SettingsDialogProps {
@@ -22,6 +22,7 @@ export function SettingsDialog({ onSaveSettings }: SettingsDialogProps) {
   const [settings, setSettings] = useState<UserSettings>(getSettings());
   const [isOpen, setIsOpen] = useState(false);
   const [newTemplate, setNewTemplate] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
 
   // Load settings when dialog opens
   useEffect(() => {
@@ -90,6 +91,39 @@ export function SettingsDialog({ onSaveSettings }: SettingsDialogProps) {
               placeholder="Enter your title"
             />
           </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="openaiApiKey" className="flex items-center justify-between">
+              OpenAI API Key
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs"
+                onClick={() => setShowApiKey(!showApiKey)}
+              >
+                {showApiKey ? (
+                  <EyeOff className="h-3 w-3 mr-1" />
+                ) : (
+                  <Eye className="h-3 w-3 mr-1" />
+                )}
+                {showApiKey ? 'Hide' : 'Show'}
+              </Button>
+            </Label>
+            <div className="relative">
+              <Input
+                id="openaiApiKey"
+                type={showApiKey ? "text" : "password"}
+                value={settings.openaiApiKey || ''}
+                onChange={(e) => setSettings(prev => ({ ...prev, openaiApiKey: e.target.value }))}
+                placeholder="Enter your OpenAI API key"
+                className="pr-24"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Your API key will be stored locally and used for email generation
+            </p>
+          </div>
+
           <div className="grid gap-2">
             <Label htmlFor="template">Email Template</Label>
             <Textarea

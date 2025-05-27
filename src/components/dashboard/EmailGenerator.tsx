@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, Wand2, Copy, Send, Mic, MicOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { openai } from '@/integrations/openai/client';
+import { openai, createOpenAIClient } from '@/integrations/openai/client';
 import { SettingsDialog } from './SettingsDialog';
 import { getSettings, type UserSettings } from '@/lib/settings';
 
@@ -51,6 +51,7 @@ export const EmailGenerator = ({ selectedLead }: EmailGeneratorProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
   const [linkedinMessage, setLinkedinMessage] = useState('');
+  const [openaiClient, setOpenaiClient] = useState(openai);
   const { toast } = useToast();
 
   // Load settings on mount
@@ -58,8 +59,23 @@ export const EmailGenerator = ({ selectedLead }: EmailGeneratorProps) => {
     setUserSettings(getSettings());
   }, []);
 
+  // Reset state when selected lead changes
+  useEffect(() => {
+    setGeneratedEmail('');
+    setSubject('');
+    setNotes('');
+    setLinkedinMessage('');
+    // Stop recording if it's active
+    if (isRecording && recognition) {
+      recognition.stop();
+      setIsRecording(false);
+    }
+  }, [selectedLead]);
+
   const handleSettingsUpdate = (newSettings: UserSettings) => {
     setUserSettings(newSettings);
+    // Recreate OpenAI client with new settings
+    setOpenaiClient(createOpenAIClient());
   };
 
   // Initialize speech recognition
@@ -193,6 +209,15 @@ export const EmailGenerator = ({ selectedLead }: EmailGeneratorProps) => {
       return;
     }
 
+    if (!openaiClient) {
+      toast({
+        title: "OpenAI API Key Missing",
+        description: "Please add your OpenAI API key in settings to generate emails",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     
     try {
@@ -225,7 +250,7 @@ Please replace any placeholders in the template with appropriate content, and us
 - My Title: ${userSettings.title}
 ${shouldAddBlurb ? `- Company Blurb: ${userSettings.blurb}` : ''}`;
 
-      const completion = await openai.chat.completions.create({
+      const completion = await openaiClient.chat.completions.create({
         model: "gpt-4",
         messages: [
           { role: "system", content: systemPrompt },
@@ -264,6 +289,15 @@ ${shouldAddBlurb ? `- Company Blurb: ${userSettings.blurb}` : ''}`;
       return;
     }
 
+    if (!openaiClient) {
+      toast({
+        title: "OpenAI API Key Missing",
+        description: "Please add your OpenAI API key in settings to generate messages",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     
     try {
@@ -286,7 +320,7 @@ ${userSettings.linkedinTemplates.map(template => `- ${template}`).join('\n')}
 
 Please replace any placeholders with appropriate content and make it feel personal.`;
 
-      const completion = await openai.chat.completions.create({
+      const completion = await openaiClient.chat.completions.create({
         model: "gpt-4",
         messages: [
           { role: "system", content: systemPrompt },
@@ -350,6 +384,24 @@ Please replace any placeholders with appropriate content and make it feel person
           <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Email Generator</h3>
           <p className="text-gray-600">Select a lead to generate personalized emails</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!openaiClient) {
+    return (
+      <div className="h-full flex items-center justify-center bg-gray-50">
+        <div className="text-center max-w-md mx-auto px-4">
+          <Mail className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">OpenAI API Key Required</h3>
+          <p className="text-gray-600 mb-4">
+            To generate personalized emails and LinkedIn messages, please add your OpenAI API key in the settings.
+          </p>
+          <SettingsDialog onSaveSettings={handleSettingsUpdate} />
+          <p className="text-sm text-gray-500 mt-4">
+            Click the settings icon above to add your API key.
+          </p>
         </div>
       </div>
     );

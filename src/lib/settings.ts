@@ -4,6 +4,7 @@ interface UserSettings {
   template: string;
   blurb: string;
   linkedinTemplates: string[];
+  openaiApiKey?: string;
 }
 
 const DEFAULT_SETTINGS: UserSettings = {
@@ -27,7 +28,8 @@ Co-founder, Questera`,
     "Fellow {department} enthusiast here, would love to connect!",
     "Your experience in {industry} caught my eye, would love to connect!",
     "Big fan of your work in the {department} space, would love to connect!"
-  ]
+  ],
+  openaiApiKey: ''
 };
 
 export const getSettings = (): UserSettings => {
